@@ -7,7 +7,13 @@ import {
   PressStart2P_400Regular,
 } from "@expo-google-fonts/press-start-2p";
 
-export default function WalletConnectButton() {
+interface WalletConnectButtonProps {
+  onConnected?: () => void;
+}
+
+export default function WalletConnectButton({
+  onConnected,
+}: WalletConnectButtonProps = {}) {
   const { open } = useAppKit();
   const { address, isConnected } = useAccount();
 
@@ -26,7 +32,10 @@ export default function WalletConnectButton() {
         <Text style={styles.addressText}>
           {address.slice(0, 6)}...{address.slice(-4)}
         </Text>
-        <TouchableOpacity style={styles.startButton} onPress={() => open()}>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() => onConnected?.()}
+        >
           <Text style={styles.buttonText}>▶ START GAME</Text>
         </TouchableOpacity>
       </View>
@@ -34,7 +43,13 @@ export default function WalletConnectButton() {
   }
 
   return (
-    <TouchableOpacity style={styles.playButton} onPress={() => open()}>
+    <TouchableOpacity
+      style={styles.playButton}
+      onPress={() => {
+        // Mock connect for now - call onConnected immediately
+        onConnected?.();
+      }}
+    >
       <Text style={styles.buttonText}>⚔️ PLAY NOW ⚔️</Text>
     </TouchableOpacity>
   );

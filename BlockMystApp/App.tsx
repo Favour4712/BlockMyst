@@ -4,12 +4,18 @@ import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Linking } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NavigationContainer } from "@react-navigation/native";
 import { AppKitProvider, AppKit } from "@reown/appkit-react-native";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFonts, PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
+import {
+  useFonts,
+  PressStart2P_400Regular,
+} from "@expo-google-fonts/press-start-2p";
 
 import { appKit, wagmiAdapter } from "./src/services/AppKitConfig";
+import { GameProvider, useGame } from "./src/context/GameContext";
+import GameNavigator from "./src/navigation/GameNavigator";
 import WalletConnectButton from "./src/components/WalletConnectButton";
 
 // Create QueryClient instance
@@ -41,6 +47,41 @@ function DeepLinkHandler() {
   return null;
 }
 
+// Landing Screen Component
+function LandingScreen({ onStart }: { onStart: () => void }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>BLOCKMYST</Text>
+      <Text style={styles.subtitle}>⚡ PUZZLE QUEST ⚡</Text>
+
+      <WalletConnectButton onConnected={onStart} />
+
+      <StatusBar style="light" />
+    </View>
+  );
+}
+
+// Main App Content
+function AppContent() {
+  const { isConnected, connect } = useGame();
+
+  useEffect(() => {
+    // Auto-connect with mock data
+    connect();
+  }, []);
+
+  if (!isConnected) {
+    return <LandingScreen onStart={connect} />;
+  }
+
+  return (
+    <NavigationContainer>
+      <GameNavigator />
+      <StatusBar style="light" />
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     PressStart2P_400Regular,
@@ -55,18 +96,13 @@ export default function App() {
       <AppKitProvider instance={appKit}>
         <WagmiProvider config={wagmiAdapter.wagmiConfig}>
           <QueryClientProvider client={queryClient}>
-            <DeepLinkHandler />
-            <View style={styles.container}>
-              <Text style={styles.title}>BLOCKMYST</Text>
-              <Text style={styles.subtitle}>⚡ PUZZLE QUEST ⚡</Text>
+            <GameProvider>
+              <DeepLinkHandler />
+              <AppContent />
 
-              <WalletConnectButton />
-
-              <StatusBar style="light" />
-            </View>
-
-            {/* AppKit Modal */}
-            <AppKit />
+              {/* AppKit Modal */}
+              <AppKit />
+            </GameProvider>
           </QueryClientProvider>
         </WagmiProvider>
       </AppKitProvider>
